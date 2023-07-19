@@ -1,0 +1,27 @@
+version: 2
+enable-beta-ecosystems: true
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directory: "/video_transcode"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directory: "/video_transcode/example"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directory: "/video_transcode_platform_interface"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directory: "/video_transcode_android"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "pub"
+    directory: "/video_transcode_ios"
+    schedule:
+      interval: "daily"

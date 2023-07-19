@@ -1,0 +1,32 @@
+name: video_transcode
+description: A simple video manipulation library based on native APIs for iOS and Android
+version: 0.1.0+1
+
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        default_package: video_transcode_android
+      ios:
+        default_package: video_transcode_ios
+
+dependencies:
+  flutter:
+    sdk: flutter
+  video_transcode_android:
+    path: ../video_transcode_android
+  video_transcode_ios:
+    path: ../video_transcode_ios
+  video_transcode_platform_interface:
+    path: ../video_transcode_platform_interface
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  mocktail: ^0.3.0
+  plugin_platform_interface: ^2.0.0
+  very_good_analysis: ^5.0.0
