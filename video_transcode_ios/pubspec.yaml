@@ -12,7 +12,6 @@ flutter:
     platforms:
       ios:
         pluginClass: VideoTranscodePlugin
-        dartPluginClass: VideoTranscodeIOS
 
 dependencies:
   flutter:

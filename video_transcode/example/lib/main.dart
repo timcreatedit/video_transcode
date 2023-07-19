@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:video_transcode/video_transcode.dart';
 
 void main() => runApp(const MyApp());
 
@@ -38,22 +37,6 @@ class _HomePageState extends State<HomePage> {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  final result = await getPlatformName();
-                  setState(() => _platformName = result);
-                } catch (error) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      content: Text('$error'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Get Platform Name'),
-            ),
           ],
         ),
       ),

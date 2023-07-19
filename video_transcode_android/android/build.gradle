@@ -1,8 +1,8 @@
-group 'works.no.one'
+group 'works.noone'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.3.50'
+    ext.kotlin_version = '1.5.20'
     repositories {
         google()
         mavenCentral()
@@ -41,10 +41,13 @@ android {
     }
 
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
     }
 }
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.otaliastudios:transcoder:0.10.5'
+    implementation 'com.linkedin.android.litr:litr:1.5.5'
+    implementation 'com.linkedin.android.litr:litr-filters:1.5.5'
 }

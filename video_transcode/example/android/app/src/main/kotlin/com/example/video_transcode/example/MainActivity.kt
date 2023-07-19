@@ -1,4 +1,4 @@
-package works.no.one.example
+package works.noone.example
 
 import io.flutter.embedding.android.FlutterActivity
 

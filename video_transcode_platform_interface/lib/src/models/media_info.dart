@@ -1,49 +1,49 @@
 import 'dart:io';
 
+import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
 @immutable
-class MediaInfo {
+class MediaInfo with EquatableMixin {
   /// A [MediaInfo] describes a media file.
   const MediaInfo({
     required this.file,
-    required this.size,
+    required this.frameSize,
     required this.duration,
-    required this.filesize,
+    required this.fileSize,
     this.title,
     this.author,
     this.orientation,
   });
 
   final File file;
-  final ({int width, int height}) size;
+  final ({int width, int height}) frameSize;
 
   final Duration duration;
 
   /// The file size in bytes
-  final int filesize;
+  final int fileSize;
 
   final String? title;
   final String? author;
 
-  /// [Android] API level 17
   final int? orientation;
 
   factory MediaInfo.fromJson(Map<String, dynamic> map) {
     try {
       switch (map) {
         case {
-            "file": final String file,
+            "path": final String path,
             "width": final int width,
             "height": final int height,
             "duration": final double duration,
-            "filesize": final int filesize,
+            "fileSize": final int fileSize,
           }:
           return MediaInfo(
-            file: File(file),
-            size: (width: width, height: height),
+            file: File(path),
+            frameSize: (width: width, height: height),
             duration: Duration(milliseconds: (1000 * duration).toInt()),
-            filesize: filesize,
+            fileSize: fileSize,
             title: map["title"] as String?,
             author: map["author"] as String?,
             orientation: map["orientation"] as int?,
@@ -58,14 +58,25 @@ class MediaInfo {
 
   Map<String, dynamic> toJson() {
     return {
-      "file": file.path,
-      "width": size.width,
-      "height": size.height,
+      "path": file.path,
+      "width": frameSize.width,
+      "height": frameSize.height,
       "duration": duration.inMilliseconds / 1000,
-      "filesize": filesize,
+      "fileSize": fileSize,
       "title": title,
       "author": author,
       "orientation": orientation,
     };
   }
+
+  @override
+  List<Object?> get props => [
+        file.path,
+        frameSize,
+        duration,
+        fileSize,
+        title,
+        author,
+        orientation,
+      ];
 }

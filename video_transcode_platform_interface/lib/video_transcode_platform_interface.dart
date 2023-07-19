@@ -4,7 +4,10 @@ import 'dart:typed_data';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:video_transcode_platform_interface/src/method_channel_video_transcode.dart';
 import 'package:video_transcode_platform_interface/src/models/media_info.dart';
-import 'package:video_transcode_platform_interface/src/models/process_value.dart';
+import 'package:video_transcode_platform_interface/src/models/transcode_process.dart';
+
+export 'package:video_transcode_platform_interface/src/models/media_info.dart';
+export 'package:video_transcode_platform_interface/src/models/transcode_process.dart';
 
 /// The interface that implementations of video_transcode must implement.
 ///
@@ -46,8 +49,9 @@ abstract class VideoTranscodePlatform extends PlatformInterface {
   /// of the source clip, the processed clip will be cropped to match the target
   /// aspect ratio. If [targetSize] is omitted, the resulting clip will keep
   /// the same resolution as the source clip.
-  Stream<ProcessValue<MediaInfo?>> processClip({
-    required File sourceFile,
+  TranscodeProcess<MediaInfo?> processVideo({
+    required File source,
+    required File target,
     Duration start = Duration.zero,
     Duration? duration,
     ({int width, int height})? targetSize,
@@ -56,21 +60,20 @@ abstract class VideoTranscodePlatform extends PlatformInterface {
   /// Concatenate multiple videos from [sourcePaths] into a single video file.
   ///
   /// The resulting video will be written to [destination].
-  Stream<ProcessValue<MediaInfo?>> concatVideos({
-    required List<String> sourcePaths,
-    required File destination,
+  TranscodeProcess<MediaInfo?> concatVideos({
+    required List<File> sources,
+    required File target,
+  });
+
+  /// Get information about a media file.
+  Future<MediaInfo?> getMediaInfo({
+    required File source,
   });
 
   /// Get a thumbnail from a video [sourceFile] as png bytes.
   Future<Uint8List?> getThumbnail({
-    required File sourceFile,
+    required File source,
     Duration position = Duration.zero,
     int quality = 100,
   });
-
-  /// Clear the cache directory.
-  Future<void> clearCache();
-
-  /// Cancel a process with given [uid]
-  Future<void> cancelProcess(int uid);
 }

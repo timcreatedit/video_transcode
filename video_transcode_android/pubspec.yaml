@@ -11,9 +11,8 @@ flutter:
     implements: video_transcode
     platforms:
       android:
-        package: works.no.one
+        package: works.noone
         pluginClass: VideoTranscodePlugin
-        dartPluginClass: VideoTranscodeAndroid
 
 dependencies:
   flutter:
