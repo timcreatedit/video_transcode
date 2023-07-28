@@ -3,8 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
-import 'package:video_transcode_platform_interface/src/models/media_info.dart';
-import 'package:video_transcode_platform_interface/src/models/process_value.dart';
 import 'package:video_transcode_platform_interface/video_transcode_platform_interface.dart';
 
 /// An implementation of [VideoTranscodePlatform] that uses method channels.
@@ -18,7 +16,7 @@ class MethodChannelVideoTranscode extends VideoTranscodePlatform {
   @visibleForTesting
   final methodChannel = const MethodChannel('video_transcode');
 
-  final Map<int, Process<MediaInfo?>> _processes = {};
+  final Map<int, TranscodeProcess<MediaInfo?>> _processes = {};
 
   /// Make sure there is no active process.
   ///
@@ -29,7 +27,22 @@ class MethodChannelVideoTranscode extends VideoTranscodePlatform {
     }
   }
 
-  Process<MediaInfo?> _startNewProcess({
+  /// Make sure the target file extension is supported
+  /// TODO support more file types
+  void _verifyExtension(File target) {
+    switch (target.path.split(".").last) {
+      case "mp4":
+        break;
+      default:
+        throw ArgumentError.value(
+          target,
+          "target",
+          "Only mp4 and mov files are supported!",
+        );
+    }
+  }
+
+  TranscodeProcess<MediaInfo?> _startNewProcess({
     Future<MediaInfo?>? fromFuture,
   }) {
     final uids = _processes.keys.toList()..sort();
@@ -37,99 +50,91 @@ class MethodChannelVideoTranscode extends VideoTranscodePlatform {
       [] => 0,
       [..., final last] => last + 1,
     };
+    onCancel() => methodChannel.invokeMethod("cancelProcess");
     _processes[uid] = fromFuture != null
-        ? Process.guardFuture(uid: uid, future: fromFuture)
-        : Process(uid);
+        ? TranscodeProcess.guardFuture(
+            uid: uid,
+            future: fromFuture,
+            onCancel: onCancel,
+          )
+        : TranscodeProcess(uid, onCancel: onCancel);
     return _processes[uid]!;
   }
 
-  Process<MediaInfo?>? get _activeProcess =>
+  TranscodeProcess<MediaInfo?>? get _activeProcess =>
       _processes.values.where((element) => element.isRunning).firstOrNull;
 
   @override
-  Stream<ProcessValue<MediaInfo?>> processClip({
-    required File sourceFile,
+  TranscodeProcess<MediaInfo?> processVideo({
+    required File source,
+    required File target,
     Duration start = Duration.zero,
     Duration? duration,
     ({int width, int height})? targetSize,
-  }) async* {
+  }) {
     _verifyAllProcessesEnded();
+    _verifyExtension(target);
 
     final future = methodChannel.invokeMethod<Map>(
-      "processClip",
+      "processVideo",
       {
-        "sourcePath": sourceFile.path,
+        "sourcePath": source.path,
+        "targetPath": target.path,
         "startSeconds": start.inMilliseconds / 1000,
         "durationSeconds":
             duration == null ? null : duration.inMilliseconds / 1000,
         "targetWidth": targetSize?.width.toInt(),
         "targetHeight": targetSize?.height.toInt(),
       },
-    ).then(
-      (value) => value == null
-          ? null
-          : MediaInfo.fromJson(
-              Map<String, dynamic>.from(value),
-            ),
-    );
-    final process = _startNewProcess(fromFuture: future);
-    yield* process.updates;
+    ).then((value) => value.jsonParse(MediaInfo.fromJson));
+    return _startNewProcess(fromFuture: future);
   }
 
   @override
-  Stream<ProcessValue<MediaInfo?>> concatVideos({
-    required List<String> sourcePaths,
-    required File destination,
-  }) async* {
+  TranscodeProcess<MediaInfo?> concatVideos({
+    required List<File> sources,
+    required File target,
+  }) {
     _verifyAllProcessesEnded();
+    _verifyExtension(target);
 
     final future = methodChannel.invokeMethod<Map>(
       "concatVideos",
       {
-        "sourcePaths": sourcePaths,
-        "destinationPath": destination.path,
+        "sourcePaths": sources.map((e) => e.path).toList(),
+        "targetPath": target.path,
       },
-    ).then((r) => r == null
-        ? null
-        : MediaInfo.fromJson(
-            Map<String, dynamic>.from(r),
-          ));
+    ).then((value) => value.jsonParse(MediaInfo.fromJson));
 
-    final process = _startNewProcess(fromFuture: future);
-    yield* process.updates;
+    return _startNewProcess(
+      fromFuture: future,
+    );
+  }
+
+  @override
+  Future<MediaInfo?> getMediaInfo({required File source}) {
+    return methodChannel.invokeMethod<Map>(
+      "getMediaInfo",
+      {
+        "sourcePath": source.path,
+      },
+    ).then((value) => value.jsonParse(MediaInfo.fromJson));
   }
 
   @override
   Future<Uint8List?> getThumbnail({
-    required File sourceFile,
+    required File source,
     Duration position = Duration.zero,
     int quality = 100,
   }) async {
     return await methodChannel.invokeMethod(
       "getThumbnail",
       {
-        "sourcePath": sourceFile.path,
+        "sourcePath": source.path,
         "positionSeconds": position.inMilliseconds / 1000,
         "quality": quality,
       },
     );
-  }
-
-  @override
-  Future<void> clearCache() async {
-    await methodChannel.invokeMethod("clearCache");
-  }
-
-  @override
-  Future<void> cancelProcess(int uid) async {
-    switch (_processes[uid]) {
-      case Process(isRunning: true):
-        await methodChannel.invokeMethod("cancelProcess", {"uid": uid});
-      case Process(isRunning: false):
-        throw StateError("Process with uid $uid is not running");
-      case null:
-        throw ArgumentError.value(uid, "uid", "No such process");
-    }
   }
 
   Future<void> _methodCallHandler(MethodCall call) async {
@@ -138,5 +143,12 @@ class MethodChannelVideoTranscode extends VideoTranscodePlatform {
     if (call.method == "updateProgress" && args != null) {
       _activeProcess?.addProgress(args);
     }
+  }
+}
+
+extension on Map<dynamic, dynamic>? {
+  T? jsonParse<T>(T Function(Map<String, dynamic>) parser) {
+    if (this == null) return null;
+    return parser(Map<String, dynamic>.from(this!));
   }
 }

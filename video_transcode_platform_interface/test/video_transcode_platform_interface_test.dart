@@ -1,7 +1,4 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:video_transcode_platform_interface/src/method_channel_video_transcode.dart';
 import 'package:video_transcode_platform_interface/video_transcode_platform_interface.dart';
 
@@ -23,7 +20,7 @@ void main() {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(
         MethodChannelVideoTranscode().methodChannel,
-        (methodCall) async {},
+        (methodCall) => Future.value(null),
       );
     });
     test("defaults to VideoTranscodePlatform", () async {
