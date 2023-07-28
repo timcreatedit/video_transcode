@@ -1,6 +1,6 @@
 name: video_transcode_ios
 description: iOS implementation of the video_transcode plugin
-version: 0.1.0+1
+version: 0.1.0+1-dev.1
 
 
 environment:
