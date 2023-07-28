@@ -1,6 +1,6 @@
 name: video_transcode_platform_interface
 description: A common platform interface for the video_transcode plugin.
-version: 0.1.0+1
+version: 0.1.0-dev.1
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
